@@ -1,0 +1,7 @@
+{
+  "name": "discord-quickbot",
+  "author": "simshadows <contact@simshadows.com>",
+  "version": "0.0.1",
+  "license": "AGPLv3",
+  "packageManager": "yarn@4.0.2"
+}
