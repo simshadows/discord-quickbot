@@ -7,25 +7,21 @@ import {
     SlashCommandBuilder,
 } from "discord.js";
 
-console.log("Attempting to read environment variable 'DISCORD_TOKEN'...");
-const token: string | undefined = process.env["DISCORD_TOKEN"];
-
-// TODO: Can we just infer this?
-console.log("Attempting to read environment variable 'CLIENT_ID'...");
-const envClientID: string | undefined = process.env["CLIENT_ID"];
-
-// TODO: Can we just infer this?
 console.log("Attempting to read environment variable 'GUILD_ID'...");
 const envGuildID: string | undefined = process.env["GUILD_ID"];
 
-async function registerCommands() {
-    if (!token) throw new Error("Token must exist.");
-    if (!envClientID) throw new Error("Client ID must exist.");
+async function registerCommands(client: Client) {
     if (!envGuildID) throw new Error("Guild ID must exist.");
+
+    const app = client.application;
+    if (!app) throw new Error("app should not be falsy");
+
+    const token = client.token;
+    if (!token) throw new Error("token should not be falsy");
 
     const rest = new REST().setToken(token);
     const data = await rest.put(
-        Routes.applicationGuildCommands(envClientID, envGuildID),
+        Routes.applicationGuildCommands(app.id, envGuildID),
         {
             body: [
                 new SlashCommandBuilder()
@@ -39,12 +35,12 @@ async function registerCommands() {
 }
 
 function runBot() {
-    if (!token) throw new Error("Token must be defined.");
-
     console.log("Starting bot...");
     const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-    client.once(Events.ClientReady, c => {
+    client.once(Events.ClientReady, async (c) => {
+        console.log("Registering commands...");
+        await registerCommands(c);
         console.log(`Ready! Logged in as ${c.user.tag}`);
     });
 
@@ -57,9 +53,9 @@ function runBot() {
     });
 
     console.log("Attempting to read environment variable 'DISCORD_TOKEN'...");
+    const token: string | undefined = process.env["DISCORD_TOKEN"];
     client.login(token);
 }
 
-await registerCommands();
 runBot();
 
